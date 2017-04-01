@@ -1,8 +1,8 @@
-#T.C. Kimlik Numarası Doğrulama Bileşeni
+# T.C. Kimlik Numarası Doğrulama Bileşeni
 
 Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini Nüfus Müdürlüğü'nün servisleri üzerinden doğrulayan bileşen.
 
-##1. pom.xml
+## 1. pom.xml
 
     <dependency>
         <groupId>com.aryaemini.nvi</groupId>
@@ -11,11 +11,11 @@ Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini N
     </dependency>
 
 
-##2. Gereklilikler
+## 2. Gereklilikler
 * classpath altında log4j.properties konfigürasyonu bulunmalıdır.
 
-##3. Kullanım
-```javaclass
+## 3. Kullanım
+```java
 Citizen citizen = new Citizen(12345678901L, "John", "Doe", 1970);
 //OR
 Citizen citizen = new Citizen();
@@ -36,8 +36,8 @@ try {
 }
 ```
 
-##4. Değişiklikler
-###1.1)
+## 4. Değişiklikler
+### 1.1)
 * Kodu düzenledim.
 * Hata bildirimi için 2 istisna sınıfı ekledim.
 * İşbu dokümanı oluşturdum.
