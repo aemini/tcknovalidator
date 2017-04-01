@@ -4,3 +4,4 @@ tcKnoValidator.iml
 .classpath
 .project
 .settings/
+*.iml
