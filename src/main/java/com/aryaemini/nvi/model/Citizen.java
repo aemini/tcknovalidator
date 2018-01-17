@@ -18,9 +18,16 @@ public class Citizen {
 
 	public Citizen(Long tckNo, String name, String surname, Integer birthYear) {
 		this.tckNo = tckNo;
-		this.name = name.toUpperCase(this.locale);
-		this.surname = surname.toUpperCase(this.locale);
+		this.name = name.toUpperCase(locale);
+		this.surname = surname.toUpperCase(locale);
 		this.birthYear = birthYear;
+	}
+
+	public Citizen(String tckNo, String name, String surname, String birthYear) throws NumberFormatException {
+		this.tckNo = Long.parseLong(tckNo);
+		this.name = name.toUpperCase(locale);
+		this.surname = surname.toUpperCase(locale);
+		this.birthYear = Integer.parseInt(birthYear);
 	}
 
 	public Long getTckNo() {
@@ -44,7 +51,7 @@ public class Citizen {
 	}
 
 	public void setName(String s) {
-		this.name = s.toUpperCase(this.locale);
+		this.name = s.toUpperCase(locale);
 	}
 
 	public String getSurname() {
@@ -52,7 +59,7 @@ public class Citizen {
 	}
 
 	public void setSurname(String s) {
-		this.surname = s.toUpperCase(this.locale);
+		this.surname = s.toUpperCase(locale);
 	}
 
 	public Integer getBirthYear() {

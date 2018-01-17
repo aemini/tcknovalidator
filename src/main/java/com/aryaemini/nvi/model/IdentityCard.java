@@ -4,54 +4,59 @@ import org.apache.log4j.Logger;
 
 import java.util.Locale;
 
-public class IdentityCard extends Citizen {
+public class IdentityCard {
 
-	private Boolean surnameNotSpecified;
+	private Long tckNo;
+	private String name;
+	private String surname;
 	private Integer birthDay;
-	private Boolean birthDayNotSpecified;
 	private Integer birthMonth;
-	private Boolean birthMonthNotSpecified;
+	private Integer birthYear;
 	private String idCardSerial;
 	private Integer idCardNumber;
-	private String idCardSerialNumber;
+	private String tckCardSerialNumber;
 
 	private Locale locale = new Locale("tr");
 	private static final Logger logger = Logger.getLogger(IdentityCard.class);
 
-	public IdentityCard() {
+	public Long getTckNo() {
+		return tckNo;
 	}
 
-	public IdentityCard(Long tckNo,
-						String name,
-						String surname,
-						Boolean surnameNotSpecified,
-						Integer birthDay,
-						Boolean birthDayNotSpecified,
-						Integer birthMonth,
-						Boolean birthMonthNotSpecified,
-						Integer birthYear,
-						String idCardSerial,
-						Integer idCardNumber) {
-		setTckNo(tckNo);
-		setName(name);
-		setSurname(surname);
-		setBirthYear(birthYear);
-
-		this.surnameNotSpecified = surnameNotSpecified;
-		this.birthDay = birthDay;
-		this.birthDayNotSpecified = birthDayNotSpecified;
-		this.birthMonth = birthMonth;
-		this.birthMonthNotSpecified = birthMonthNotSpecified;
-		this.idCardSerial = idCardSerial;
-		this.idCardNumber = idCardNumber;
+	public void setTckNo(Long tckNo) {
+		this.tckNo = tckNo;
 	}
 
-	public Boolean getSurnameNotSpecified() {
-		return surnameNotSpecified;
+	public void setTckNo(String tckNo) {
+		try {
+			this.tckNo = Long.parseLong(tckNo);
+		} catch (NumberFormatException e) {
+			logger.info("T.C. kimlik numarası rakamlardan oluşmalıdır.");
+		}
 	}
 
-	public void setSurnameNotSpecified(Boolean surnameNotSpecified) {
-		this.surnameNotSpecified = surnameNotSpecified;
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name.toUpperCase(locale);
+	}
+
+	public String getSurname() {
+		return surname;
+	}
+
+	public void setSurname(String surname) {
+		if(surname != null && surname.length() > 0) {
+			this.surname = surname.toUpperCase(locale);
+		} else {
+			this.surname = null;
+		}
+	}
+
+	public boolean isSurnameNotSpecified() {
+		return surname == null;
 	}
 
 	public Integer getBirthDay() {
@@ -59,15 +64,29 @@ public class IdentityCard extends Citizen {
 	}
 
 	public void setBirthDay(Integer birthDay) {
-		this.birthDay = birthDay;
+		if(birthDay != null && birthDay > 0) {
+			this.birthDay = birthDay;
+		} else {
+			this.birthDay = null;
+		}
 	}
 
-	public Boolean getBirthDayNotSpecified() {
-		return birthDayNotSpecified;
+	public void setBirthDay(String strBirthDay) {
+		try {
+			Integer birthDay = Integer.parseInt(strBirthDay);
+			if(birthDay > 0) {
+				this.birthDay = birthDay;
+			} else {
+				this.birthDay = null;
+			}
+		} catch (NumberFormatException e) {
+			logger.info("Doğum günü rakamlardan oluşmalıdır.");
+			this.birthDay = null;
+		}
 	}
 
-	public void setBirthDayNotSpecified(Boolean birthDayNotSpecified) {
-		this.birthDayNotSpecified = birthDayNotSpecified;
+	public boolean isBirthDayNotSpecified() {
+		return birthDay == null;
 	}
 
 	public Integer getBirthMonth() {
@@ -75,15 +94,46 @@ public class IdentityCard extends Citizen {
 	}
 
 	public void setBirthMonth(Integer birthMonth) {
-		this.birthMonth = birthMonth;
+		if(birthMonth != null && birthMonth > 0) {
+			this.birthMonth = birthMonth;
+		} else {
+			this.birthMonth = null;
+		}
 	}
 
-	public Boolean getBirthMonthNotSpecified() {
-		return birthMonthNotSpecified;
+	public void setBirthMonth(String strBirthMonth) {
+		try {
+			Integer birthMonth = Integer.parseInt(strBirthMonth);
+			if(birthMonth > 0) {
+				this.birthMonth = birthMonth;
+			} else {
+				this.birthMonth = null;
+			}
+		} catch (NumberFormatException e) {
+			logger.info("Doğum ayı rakamlardan oluşmalıdır.");
+			this.birthMonth = null;
+		}
 	}
 
-	public void setBirthMonthNotSpecified(Boolean birthMonthNotSpecified) {
-		this.birthMonthNotSpecified = birthMonthNotSpecified;
+	public boolean isBirthMonthNotSpecified() {
+		return birthMonth == null;
+	}
+
+	public Integer getBirthYear() {
+		return birthYear;
+	}
+
+	public void setBirthYear(Integer birthYear) {
+		this.birthYear = birthYear;
+	}
+
+	public void setBirthYear(String birthYear) {
+		try {
+			this.birthYear = Integer.parseInt(birthYear);
+		} catch (NumberFormatException e) {
+			logger.info("Doğum yılı rakamlardan oluşmalıdır.");
+			this.birthYear = null;
+		}
 	}
 
 	public String getIdCardSerial() {
@@ -91,7 +141,7 @@ public class IdentityCard extends Citizen {
 	}
 
 	public void setIdCardSerial(String idCardSerial) {
-		this.idCardSerial = idCardSerial;
+		this.idCardSerial = stringOrNull(idCardSerial);
 	}
 
 	public Integer getIdCardNumber() {
@@ -102,12 +152,36 @@ public class IdentityCard extends Citizen {
 		this.idCardNumber = idCardNumber;
 	}
 
-	public String getIdCardSerialNumber() {
-		return idCardSerialNumber;
+	public void setIdCardNumber(String idCardNumber) {
+		try {
+			this.idCardNumber = Integer.parseInt(idCardNumber);
+		} catch (NumberFormatException e) {
+			logger.info("Kimlik seri numarası rakamlardan oluşmalıdır.");
+			this.idCardNumber = null;
+		}
 	}
 
-	public void setIdCardSerialNumber(String idCardSerialNumber) {
-		this.idCardSerialNumber = idCardSerialNumber;
+	public boolean validateIdCardNumber() {
+		return idCardSerial != null && idCardNumber != null;
+	}
+
+	public String getTckCardSerialNumber() {
+		return tckCardSerialNumber;
+	}
+
+	public void setTckCardSerialNumber(String tckCardSerialNumber) {
+		this.tckCardSerialNumber = stringOrNull(tckCardSerialNumber);
+	}
+
+	public boolean validateTckCardSerialNumber() {
+		return tckCardSerialNumber != null;
+	}
+
+	private String stringOrNull(String string) {
+		if(string == null || string.length() < 1) {
+			return null;
+		}
+		return string.toUpperCase(locale);
 	}
 
 }
