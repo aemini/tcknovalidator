@@ -7,7 +7,7 @@ Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini N
     <dependency>
         <groupId>com.aryaemini.nvi</groupId>
         <artifactId>tckno-validator</artifactId>
-        <version>${tcknoValidator.version}</version>
+        <version>1.2</version>
     </dependency>
 
 
@@ -23,14 +23,29 @@ citizen.setTckNo("12345678901");
 citizen.setName("John");
 citizen.setSurname("Doe");
 citizen.setBirthYear("1970");
+ 
 
+IdentityCard identityCard = new IdentityCard();
+identityCard.setTckNo("12345678901");
+identityCard.setName("John");
+identityCard.setSurname("Doe"); //null or empty string if not specified
+identityCard.setBirthDay(1); //0 if not specified
+identityCard.setBirthMonth(1); //0 if not specified
+identityCard.setBirthYear(1970);
+//
+identityCard.setIdCardSerial("a00");
+identityCard.setIdCardNumber(111111);
+//OR
+identityCard.setTckCardSerialNumber("serial");
+ 
 TCKNoValidator validator = new TCKNoValidator();
-validator.setCitizen(citizen);
-
-Boolean isValid;
-
+ 
+Boolean isValidCitizen;
+Boolean isValidIdCard;
+ 
 try {
-    isValid = validator.validate();
+    isValidCitizen = validator.validate(citizen);
+    isValidIdCard = validator.validate(identityCard);
 } catch (TCKNoValidationException e) {
     //e.printStackTrace();
 }
@@ -41,3 +56,6 @@ try {
 * Kodu düzenledim.
 * Hata bildirimi için 2 istisna sınıfı ekledim.
 * İşbu dokümanı oluşturdum.
+
+### 1.2)
+* Nüfus cüzdanı ve T.C. Kimlik Kartı doğrulama eklendi
