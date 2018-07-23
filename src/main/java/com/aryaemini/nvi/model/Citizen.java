@@ -1,8 +1,8 @@
 package com.aryaemini.nvi.model;
 
-import org.apache.log4j.Logger;
-
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Citizen {
 
@@ -11,7 +11,7 @@ public class Citizen {
 	private Integer birthYear;
 	private Locale locale = new Locale("tr");
 
-	private static final Logger logger = Logger.getLogger(Citizen.class);
+	private static final Logger logger = Logger.getLogger(Citizen.class.getName());
 
 	public Citizen() {
 	}
@@ -23,11 +23,11 @@ public class Citizen {
 		this.birthYear = birthYear;
 	}
 
-	public Citizen(String tckNo, String name, String surname, String birthYear) throws NumberFormatException {
-		this.tckNo = Long.parseLong(tckNo);
+	public Citizen(String tckNo, String name, String surname, String birthYear) {
 		this.name = name.toUpperCase(locale);
 		this.surname = surname.toUpperCase(locale);
-		this.birthYear = Integer.parseInt(birthYear);
+		setTckNo(tckNo);
+		setBirthYear(birthYear);
 	}
 
 	public Long getTckNo() {
@@ -38,11 +38,12 @@ public class Citizen {
 		this.tckNo = l;
 	}
 
-	public void setTckNo(String s) {
+	public void setTckNo(String tckNo) {
 		try {
-			this.tckNo = Long.parseLong(s);
+			this.tckNo = Long.parseLong(tckNo);
 		} catch (NumberFormatException e) {
-			logger.warn("T.C. kimlik numarası rakamlardan oluşmalıdır.");
+			logger.log(Level.FINE, "Not a number " + e.getMessage());
+			this.tckNo = null;
 		}
 	}
 
@@ -74,7 +75,8 @@ public class Citizen {
 		try {
 			this.birthYear = Integer.parseInt(s);
 		} catch (NumberFormatException e) {
-			logger.warn("Doğum yılı rakamlardan oluşmalıdır.");
+			logger.log(Level.FINE, "Not a number " + e.getMessage());
+			this.birthYear = null;
 		}
 	}
 

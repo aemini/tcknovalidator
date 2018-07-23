@@ -1,6 +1,6 @@
 package com.aryaemini.nvi.exception;
 
-public class TCKNoValidationException extends Exception {
+public class TCKNoValidationException extends RuntimeException {
 
 	private static final long serialVersionUID = 200L;
 	private String message;

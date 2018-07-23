@@ -1,8 +1,8 @@
 package com.aryaemini.nvi.model;
 
-import org.apache.log4j.Logger;
-
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class IdentityCard {
 
@@ -17,7 +17,7 @@ public class IdentityCard {
 	private String tckCardSerialNumber;
 
 	private Locale locale = new Locale("tr");
-	private static final Logger logger = Logger.getLogger(IdentityCard.class);
+	private static final Logger logger = Logger.getLogger(IdentityCard.class.getName());
 
 	public Long getTckNo() {
 		return tckNo;
@@ -31,7 +31,8 @@ public class IdentityCard {
 		try {
 			this.tckNo = Long.parseLong(tckNo);
 		} catch (NumberFormatException e) {
-			logger.info("T.C. kimlik numarası rakamlardan oluşmalıdır.");
+			logger.log(Level.FINE, "Not a number " + e.getMessage());
+			this.tckNo = null;
 		}
 	}
 
@@ -80,7 +81,7 @@ public class IdentityCard {
 				this.birthDay = null;
 			}
 		} catch (NumberFormatException e) {
-			logger.info("Doğum günü rakamlardan oluşmalıdır.");
+			logger.log(Level.FINE, "Doğum günü rakamlardan oluşmalıdır.");
 			this.birthDay = null;
 		}
 	}
@@ -110,7 +111,7 @@ public class IdentityCard {
 				this.birthMonth = null;
 			}
 		} catch (NumberFormatException e) {
-			logger.info("Doğum ayı rakamlardan oluşmalıdır.");
+			logger.log(Level.FINE, "Doğum ayı rakamlardan oluşmalıdır.");
 			this.birthMonth = null;
 		}
 	}
@@ -131,7 +132,7 @@ public class IdentityCard {
 		try {
 			this.birthYear = Integer.parseInt(birthYear);
 		} catch (NumberFormatException e) {
-			logger.info("Doğum yılı rakamlardan oluşmalıdır.");
+			logger.log(Level.FINE, "Doğum yılı rakamlardan oluşmalıdır.");
 			this.birthYear = null;
 		}
 	}
@@ -156,7 +157,7 @@ public class IdentityCard {
 		try {
 			this.idCardNumber = Integer.parseInt(idCardNumber);
 		} catch (NumberFormatException e) {
-			logger.info("Kimlik seri numarası rakamlardan oluşmalıdır.");
+			logger.log(Level.FINE, "Kimlik seri numarası rakamlardan oluşmalıdır.");
 			this.idCardNumber = null;
 		}
 	}

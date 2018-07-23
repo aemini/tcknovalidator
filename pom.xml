@@ -3,12 +3,16 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.aryaemini.nvi</groupId>
 	<artifactId>tckno-validator</artifactId>
-	<version>1.3-SNAPSHOT</version>
+	<version>1.3</version>
 	<packaging>jar</packaging>
 
 	<name>T.C. Kimlik Dogrulama</name>
 	<description>T.C. kimlik numarasi sorgulama araci.</description>
 	<url>https://github.com/aemini/tcknovalidator</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 	<licenses>
 		<license>
@@ -23,7 +27,7 @@
 			<name>Arya Emini</name>
 			<email>arya@aryaemini.com</email>
 			<organization>Arya Emini</organization>
-			<organizationUrl>https://github.com/aemini/tcknovalidator</organizationUrl>
+			<organizationUrl>http://www.aryaemini.com/</organizationUrl>
 		</developer>
 	</developers>
 
@@ -31,7 +35,7 @@
 		<connection>scm:git:git@github.com:aemini/tcknovalidator.git</connection>
 		<developerConnection>scm:git:git@github.com:aemini/tcknovalidator.git</developerConnection>
 		<url>scm:git:git@github.com:aemini/tcknovalidator.git</url>
-  </scm>
+	</scm>
 
 	<distributionManagement>
 		<snapshotRepository>
@@ -44,20 +48,12 @@
 		</repository>
 	</distributionManagement>
 
-	<dependencies>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-		</dependency>
-	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
+				<version>3.0.1</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -70,7 +66,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
+				<version>3.0.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -83,7 +79,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.5</version>
+				<version>1.6</version>
 				<executions>
 					<execution>
 						<id>sign-artifacts</id>
