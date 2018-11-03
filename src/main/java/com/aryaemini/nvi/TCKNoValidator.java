@@ -3,8 +3,9 @@ package com.aryaemini.nvi;
 import com.aryaemini.nvi.exception.EmptyFieldException;
 import com.aryaemini.nvi.exception.TCKNoValidationException;
 import com.aryaemini.nvi.interfaces.Citizen;
+import com.aryaemini.nvi.interfaces.IdentityCard;
 import com.aryaemini.nvi.model.CitizenImpl;
-import com.aryaemini.nvi.model.IdentityCard;
+import com.aryaemini.nvi.model.IdentityCardImpl;
 
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
@@ -89,10 +90,11 @@ public class TCKNoValidator {
 	}
 
 	public Boolean validate(IdentityCard identityCard) {
+		IdentityCardImpl identityCardImpl = new IdentityCardImpl(identityCard);
 		try {
-			if (localValidate(identityCard.getTckNo().toString())) {
+			if (localValidate(identityCardImpl.getTckNo().toString())) {
 				logger.fine("T.C. kimlik numarası algoritması geçerli.");
-				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCard);
+				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCardImpl);
 				String url = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
 				return request(soapMessage, url);
 			}
@@ -157,7 +159,7 @@ public class TCKNoValidator {
 		return soapMessage;
 	}
 
-	private SOAPMessage createIdentityCardSOAPRequest(IdentityCard identityCard) throws EmptyFieldException, SOAPException {
+	private SOAPMessage createIdentityCardSOAPRequest(IdentityCardImpl identityCardImpl) throws EmptyFieldException, SOAPException {
 		logger.fine("Sorgulama isteği oluşturuluyor.");
 		MessageFactory messageFactory = MessageFactory.newInstance();
 		SOAPMessage soapMessage = messageFactory.createMessage();
@@ -174,32 +176,32 @@ public class TCKNoValidator {
 
 		try {
 			SOAPElement idCardValidate = soapBody.addChildElement("KisiVeCuzdanDogrula", "tckn");
-			SOAPElement tckNo = idCardValidate.addChildElement("TCKimlikNo", "tckn").addTextNode(identityCard.getTckNo().toString());
-			SOAPElement name = idCardValidate.addChildElement("Ad", "tckn").addTextNode(identityCard.getName());
-			if (identityCard.isSurnameNotSpecified()) {
+			idCardValidate.addChildElement("TCKimlikNo", "tckn").addTextNode(identityCardImpl.getTckNo().toString());
+			idCardValidate.addChildElement("Ad", "tckn").addTextNode(identityCardImpl.getName());
+			if (identityCardImpl.isSurnameNotSpecified()) {
 				idCardValidate.addChildElement("SoyadYok", "tckn").addTextNode("true");
 			} else {
-				SOAPElement surname = idCardValidate.addChildElement("Soyad", "tckn").addTextNode(identityCard.getSurname());
+				idCardValidate.addChildElement("Soyad", "tckn").addTextNode(identityCardImpl.getSurname());
 			}
-			if (identityCard.isBirthDayNotSpecified()) {
+			if (identityCardImpl.isBirthDayNotSpecified()) {
 				idCardValidate.addChildElement("DogumGunYok", "tckn").addTextNode("true");
 			} else {
-				SOAPElement birthDay = idCardValidate.addChildElement("DogumGun", "tckn").addTextNode(identityCard.getBirthDay().toString());
+				idCardValidate.addChildElement("DogumGun", "tckn").addTextNode(identityCardImpl.getBirthDay().toString());
 			}
-			if (identityCard.isBirthMonthNotSpecified()) {
+			if (identityCardImpl.isBirthMonthNotSpecified()) {
 				idCardValidate.addChildElement("DogumAyYok", "tckn").addTextNode("true");
 			} else {
-				SOAPElement birthMonth = idCardValidate.addChildElement("DogumAy", "tckn").addTextNode(identityCard.getBirthMonth().toString());
+				idCardValidate.addChildElement("DogumAy", "tckn").addTextNode(identityCardImpl.getBirthMonth().toString());
 			}
-			SOAPElement birthYear = idCardValidate.addChildElement("DogumYil", "tckn").addTextNode(identityCard.getBirthYear().toString());
+			idCardValidate.addChildElement("DogumYil", "tckn").addTextNode(identityCardImpl.getBirthYear().toString());
 
-			if (identityCard.validateIdCardNumber()) {
-				SOAPElement idCardSerial = idCardValidate.addChildElement("CuzdanSeri", "tckn").addTextNode(identityCard.getIdCardSerial());
-				SOAPElement idCardNumber = idCardValidate.addChildElement("CuzdanNo", "tckn").addTextNode(identityCard.getIdCardNumber().toString());
+			if (identityCardImpl.validateIdCardNumber()) {
+				idCardValidate.addChildElement("CuzdanSeri", "tckn").addTextNode(identityCardImpl.getIdCardSerial());
+				idCardValidate.addChildElement("CuzdanNo", "tckn").addTextNode(identityCardImpl.getIdCardNumber().toString());
 			}
 
-			if (identityCard.validateTckCardSerialNumber()) {
-				SOAPElement tckCardSerialNumber = idCardValidate.addChildElement("TCKKSeriNo", "tckn").addTextNode(identityCard.getTckCardSerialNumber());
+			if (identityCardImpl.validateTckCardSerialNumber()) {
+				idCardValidate.addChildElement("TCKKSeriNo", "tckn").addTextNode(identityCardImpl.getTckCardSerialNumber());
 			}
 		} catch (NullPointerException e) {
 			logger.fine("Doldurulmamış alanlar bulunmaktadır. Lütfen tüm alanları doldurun.");

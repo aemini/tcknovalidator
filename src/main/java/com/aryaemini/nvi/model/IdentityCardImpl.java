@@ -1,10 +1,11 @@
 package com.aryaemini.nvi.model;
 
+import com.aryaemini.nvi.interfaces.IdentityCard;
+
 import java.util.Locale;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class IdentityCard {
+public class IdentityCardImpl implements IdentityCard {
 
 	private Long tckNo;
 	private String name;
@@ -17,7 +18,22 @@ public class IdentityCard {
 	private String tckCardSerialNumber;
 
 	private Locale locale = new Locale("tr");
-	private static final Logger logger = Logger.getLogger(IdentityCard.class.getName());
+	private static final Logger logger = Logger.getLogger(IdentityCardImpl.class.getName());
+
+	private IdentityCardImpl() {
+	}
+
+	public IdentityCardImpl(IdentityCard identityCard) {
+		setTckNo(identityCard.getTckNo());
+		setName(identityCard.getName());
+		setSurname(identityCard.getSurname());
+		setBirthDay(identityCard.getBirthDay());
+		setBirthMonth(identityCard.getBirthMonth());
+		setBirthYear(identityCard.getBirthYear());
+		setIdCardSerial(identityCard.getIdCardSerial());
+		setIdCardNumber(identityCard.getIdCardNumber());
+		setTckCardSerialNumber(identityCard.getTckCardSerialNumber());
+	}
 
 	public Long getTckNo() {
 		return tckNo;
@@ -31,29 +47,28 @@ public class IdentityCard {
 		try {
 			this.tckNo = Long.parseLong(tckNo);
 		} catch (NumberFormatException e) {
-			logger.log(Level.FINE, "Not a number " + e.getMessage());
+			logger.fine("Not a number " + e.getMessage());
 			this.tckNo = null;
 		}
 	}
 
 	public String getName() {
-		return name;
+		return name.toUpperCase(locale).trim();
 	}
 
 	public void setName(String name) {
-		this.name = name.toUpperCase(locale);
+		this.name = name;
 	}
 
 	public String getSurname() {
+		if (surname != null && surname.length() > 0) {
+			return surname.toUpperCase(locale).trim();
+		}
 		return surname;
 	}
 
 	public void setSurname(String surname) {
-		if(surname != null && surname.length() > 0) {
-			this.surname = surname.toUpperCase(locale);
-		} else {
-			this.surname = null;
-		}
+		this.surname = surname;
 	}
 
 	public boolean isSurnameNotSpecified() {
@@ -65,7 +80,7 @@ public class IdentityCard {
 	}
 
 	public void setBirthDay(Integer birthDay) {
-		if(birthDay != null && birthDay > 0) {
+		if (birthDay != null && birthDay > 0) {
 			this.birthDay = birthDay;
 		} else {
 			this.birthDay = null;
@@ -75,13 +90,13 @@ public class IdentityCard {
 	public void setBirthDay(String strBirthDay) {
 		try {
 			Integer birthDay = Integer.parseInt(strBirthDay);
-			if(birthDay > 0) {
+			if (birthDay > 0) {
 				this.birthDay = birthDay;
 			} else {
 				this.birthDay = null;
 			}
 		} catch (NumberFormatException e) {
-			logger.log(Level.FINE, "Doğum günü rakamlardan oluşmalıdır.");
+			logger.fine("Doğum günü rakamlardan oluşmalıdır.");
 			this.birthDay = null;
 		}
 	}
@@ -105,13 +120,13 @@ public class IdentityCard {
 	public void setBirthMonth(String strBirthMonth) {
 		try {
 			Integer birthMonth = Integer.parseInt(strBirthMonth);
-			if(birthMonth > 0) {
+			if (birthMonth > 0) {
 				this.birthMonth = birthMonth;
 			} else {
 				this.birthMonth = null;
 			}
 		} catch (NumberFormatException e) {
-			logger.log(Level.FINE, "Doğum ayı rakamlardan oluşmalıdır.");
+			logger.fine("Doğum ayı rakamlardan oluşmalıdır.");
 			this.birthMonth = null;
 		}
 	}
@@ -132,7 +147,7 @@ public class IdentityCard {
 		try {
 			this.birthYear = Integer.parseInt(birthYear);
 		} catch (NumberFormatException e) {
-			logger.log(Level.FINE, "Doğum yılı rakamlardan oluşmalıdır.");
+			logger.fine("Doğum yılı rakamlardan oluşmalıdır.");
 			this.birthYear = null;
 		}
 	}
@@ -157,7 +172,7 @@ public class IdentityCard {
 		try {
 			this.idCardNumber = Integer.parseInt(idCardNumber);
 		} catch (NumberFormatException e) {
-			logger.log(Level.FINE, "Kimlik seri numarası rakamlardan oluşmalıdır.");
+			logger.fine("Kimlik seri numarası rakamlardan oluşmalıdır.");
 			this.idCardNumber = null;
 		}
 	}
