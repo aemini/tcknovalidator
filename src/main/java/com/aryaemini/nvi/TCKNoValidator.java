@@ -2,7 +2,8 @@ package com.aryaemini.nvi;
 
 import com.aryaemini.nvi.exception.EmptyFieldException;
 import com.aryaemini.nvi.exception.TCKNoValidationException;
-import com.aryaemini.nvi.model.Citizen;
+import com.aryaemini.nvi.interfaces.Citizen;
+import com.aryaemini.nvi.model.CitizenImpl;
 import com.aryaemini.nvi.model.IdentityCard;
 
 import javax.xml.soap.SOAPElement;
@@ -14,7 +15,6 @@ import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class TCKNoValidator {
@@ -34,7 +34,7 @@ public class TCKNoValidator {
 
 	private Boolean localValidate(String tckNo) {
 		if(tckNo == null || tckNo.length() != 11) {
-			logger.log(Level.FINE, "T.C. kimlik numarası 11 haneli olmalıdır.");
+			logger.fine("T.C. kimlik numarası 11 haneli olmalıdır.");
 			return false;
 		}
 		int odds = 0, evens = 0, sum10 = 0;
@@ -55,34 +55,35 @@ public class TCKNoValidator {
 			char11 = Integer.toString(sum10 % 10);
 
 			if (!tckNo.substring(10, 11).equals(char11) || !tckNo.substring(9, 10).equals(char10)) {
-				logger.log(Level.FINE, "Geçersiz T.C. kimlik numarası.");
+				logger.fine("Geçersiz T.C. kimlik numarası.");
 				return false;
 			}
 
 			return true;
 		} catch (StringIndexOutOfBoundsException e) {
-			logger.log(Level.FINE, "T.C. kimlik numarası 11 haneli olmalıdır.");
+			logger.fine("T.C. kimlik numarası 11 haneli olmalıdır.");
 			throw new TCKNoValidationException("T.C. kimlik numarası 11 haneli olmalıdır.", e);
 		}
 	}
 
 	public Boolean validate(Citizen citizen) {
+		CitizenImpl citizenImpl = new CitizenImpl(citizen);
 		try {
-			if(localValidate(citizen.getTckNo().toString())) {
-				logger.log(Level.FINE, "T.C. kimlik numarası algoritması geçerli.");
-				SOAPMessage soapMessage = createCitizenSOAPRequest(citizen);
+			if(localValidate(citizenImpl.getTckNo().toString())) {
+				logger.fine("T.C. kimlik numarası algoritması geçerli.");
+				SOAPMessage soapMessage = createCitizenSOAPRequest(citizenImpl);
 				String url = "https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx";
 				return request(soapMessage, url);
 			}
 			return false;
 		} catch (EmptyFieldException e) {
-			logger.log(Level.FINE, "Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.");
+			logger.fine("Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.");
 			return false;
 		} catch (NullPointerException e) {
-			logger.log(Level.FINE, "Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.");
+			logger.fine("Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.");
 			return false;
 		} catch (SOAPException e) {
-			logger.log(Level.FINE, "Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.");
+			logger.fine("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.");
 			throw new TCKNoValidationException("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.", e);
 		}
 	}
@@ -90,23 +91,23 @@ public class TCKNoValidator {
 	public Boolean validate(IdentityCard identityCard) {
 		try {
 			if (localValidate(identityCard.getTckNo().toString())) {
-				logger.log(Level.FINE, "T.C. kimlik numarası algoritması geçerli.");
+				logger.fine("T.C. kimlik numarası algoritması geçerli.");
 				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCard);
 				String url = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
 				return request(soapMessage, url);
 			}
 			return false;
 		} catch (EmptyFieldException e) {
-			logger.log(Level.FINE, "Doldurulmamış alanlar bulunuyor. Nüfus cüzdanı doğrulaması yapılmadı.");
+			logger.fine("Doldurulmamış alanlar bulunuyor. Nüfus cüzdanı doğrulaması yapılmadı.");
 			return false;
 		} catch (SOAPException e) {
-			logger.log(Level.FINE, "Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.");
+			logger.fine("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.");
 			throw new TCKNoValidationException("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.", e);
 		}
 	}
 
 	private Boolean request(SOAPMessage soapMessage, String url) {
-		logger.log(Level.FINE, "Nüfus müdürlüğünden sorgulamaya hazırlanılıyor.");
+		logger.fine("Nüfus müdürlüğünden sorgulamaya hazırlanılıyor.");
 		Boolean result;
 		try {
 			SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
@@ -121,8 +122,8 @@ public class TCKNoValidator {
 		return result;
 	}
 
-	private SOAPMessage createCitizenSOAPRequest(Citizen citizen) throws EmptyFieldException, SOAPException {
-		logger.log(Level.FINE, "Sorgulama isteği oluşturuluyor.");
+	private SOAPMessage createCitizenSOAPRequest(CitizenImpl citizen) throws EmptyFieldException, SOAPException {
+		logger.fine("Sorgulama isteği oluşturuluyor.");
 		MessageFactory messageFactory = MessageFactory.newInstance();
 		SOAPMessage soapMessage = messageFactory.createMessage();
 		SOAPPart soapPart = soapMessage.getSOAPPart();
@@ -148,7 +149,7 @@ public class TCKNoValidator {
 			surname.addTextNode(citizen.getSurname());
 			birthYear.addTextNode(citizen.getBirthYear().toString());
 		} catch (NullPointerException e) {
-			logger.log(Level.FINE, "Doldurulmamış alanlar bulunmaktadır. Lütfen tüm alanları doldurun.");
+			logger.fine("Doldurulmamış alanlar bulunmaktadır. Lütfen tüm alanları doldurun.");
 			throw new EmptyFieldException("Lütfen tüm alanları doldurun", e);
 		}
 
@@ -157,7 +158,7 @@ public class TCKNoValidator {
 	}
 
 	private SOAPMessage createIdentityCardSOAPRequest(IdentityCard identityCard) throws EmptyFieldException, SOAPException {
-		logger.log(Level.FINE, "Sorgulama isteği oluşturuluyor.");
+		logger.fine("Sorgulama isteği oluşturuluyor.");
 		MessageFactory messageFactory = MessageFactory.newInstance();
 		SOAPMessage soapMessage = messageFactory.createMessage();
 		SOAPPart soapPart = soapMessage.getSOAPPart();
@@ -201,7 +202,7 @@ public class TCKNoValidator {
 				SOAPElement tckCardSerialNumber = idCardValidate.addChildElement("TCKKSeriNo", "tckn").addTextNode(identityCard.getTckCardSerialNumber());
 			}
 		} catch (NullPointerException e) {
-			logger.log(Level.FINE, "Doldurulmamış alanlar bulunmaktadır. Lütfen tüm alanları doldurun.");
+			logger.fine("Doldurulmamış alanlar bulunmaktadır. Lütfen tüm alanları doldurun.");
 			throw new EmptyFieldException("Lütfen tüm alanları doldurun", e);
 		}
 		soapMessage.saveChanges();
