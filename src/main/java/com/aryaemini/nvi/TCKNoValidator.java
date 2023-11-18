@@ -4,7 +4,6 @@ import com.aryaemini.nvi.exception.EmptyFieldException;
 import com.aryaemini.nvi.exception.TCKNoValidationException;
 import com.aryaemini.nvi.interfaces.IdentityCard;
 import com.aryaemini.nvi.interfaces.Person;
-import com.aryaemini.nvi.model.IdentityCardImpl;
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPBody;
 import jakarta.xml.soap.SOAPConnection;
@@ -25,7 +24,8 @@ public class TCKNoValidator {
 	private static final String MESSAGE_EMPTY_FIELD = "Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.";
 	private static final String MESSAGE_LENGTH = "T.C. kimlik numarası 11 haneli olmalıdır.";
 	private static final String MESSAGE_UNEXPECTED_RESPONSE = "Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.";
-	private static final String SERVICE_URL_PERSON_VALUDATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx";
+	private static final String SERVICE_URL_IDENTITY_CARD_VALITATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
+	private static final String SERVICE_URL_PERSON_VALIDATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx";
 	private static TCKNoValidator instance;
 
 	private TCKNoValidator() {
@@ -81,7 +81,7 @@ public class TCKNoValidator {
 			if (localValidate(person.getIdentityNumber())) {
 				logger.trace("T.C. kimlik numarası algoritması geçerli.");
 				SOAPMessage soapMessage = createCitizenSOAPRequest(person);
-				return request(soapMessage, SERVICE_URL_PERSON_VALUDATION);
+				return request(soapMessage, SERVICE_URL_PERSON_VALIDATION);
 			}
 			return false;
 		} catch (EmptyFieldException | NullPointerException e) {
@@ -94,13 +94,11 @@ public class TCKNoValidator {
 	}
 
 	public boolean validate(IdentityCard identityCard) {
-		IdentityCardImpl identityCardImpl = new IdentityCardImpl(identityCard);
 		try {
-			if (localValidate(identityCardImpl.getTckNo().toString())) {
+			if (localValidate(identityCard.getIdentityNumber())) {
 				logger.trace("T.C. kimlik numarası algoritması geçerli.");
-				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCardImpl);
-				String url = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
-				return request(soapMessage, url);
+				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCard);
+				return request(soapMessage, SERVICE_URL_IDENTITY_CARD_VALITATION);
 			}
 			return false;
 		} catch (EmptyFieldException e) {
@@ -163,7 +161,7 @@ public class TCKNoValidator {
 		return soapMessage;
 	}
 
-	private SOAPMessage createIdentityCardSOAPRequest(IdentityCardImpl identityCardImpl) throws EmptyFieldException, SOAPException {
+	private SOAPMessage createIdentityCardSOAPRequest(IdentityCard identityCard) throws EmptyFieldException, SOAPException {
 		logger.trace("Sorgulama isteği oluşturuluyor.");
 		MessageFactory messageFactory = MessageFactory.newInstance();
 		SOAPMessage soapMessage = messageFactory.createMessage();
@@ -180,32 +178,32 @@ public class TCKNoValidator {
 
 		try {
 			SOAPElement idCardValidate = soapBody.addChildElement("KisiVeCuzdanDogrula", "tckn");
-			idCardValidate.addChildElement("TCKimlikNo", "tckn").addTextNode(identityCardImpl.getTckNo().toString());
-			idCardValidate.addChildElement("Ad", "tckn").addTextNode(identityCardImpl.getName());
-			if (identityCardImpl.isSurnameNotSpecified()) {
+			idCardValidate.addChildElement("TCKimlikNo", "tckn").addTextNode(identityCard.getIdentityNumber());
+			idCardValidate.addChildElement("Ad", "tckn").addTextNode(identityCard.getFirstName());
+			if (identityCard.isSurnameNotSpecified()) {
 				idCardValidate.addChildElement("SoyadYok", "tckn").addTextNode("true");
 			} else {
-				idCardValidate.addChildElement("Soyad", "tckn").addTextNode(identityCardImpl.getSurname());
+				idCardValidate.addChildElement("Soyad", "tckn").addTextNode(identityCard.getLastName());
 			}
-			if (identityCardImpl.isBirthDayNotSpecified()) {
+			if (identityCard.isBirthDayNotSpecified()) {
 				idCardValidate.addChildElement("DogumGunYok", "tckn").addTextNode("true");
 			} else {
-				idCardValidate.addChildElement("DogumGun", "tckn").addTextNode(identityCardImpl.getBirthDay().toString());
+				idCardValidate.addChildElement("DogumGun", "tckn").addTextNode(identityCard.getBirthDay().toString());
 			}
-			if (identityCardImpl.isBirthMonthNotSpecified()) {
+			if (identityCard.isBirthMonthNotSpecified()) {
 				idCardValidate.addChildElement("DogumAyYok", "tckn").addTextNode("true");
 			} else {
-				idCardValidate.addChildElement("DogumAy", "tckn").addTextNode(identityCardImpl.getBirthMonth().toString());
+				idCardValidate.addChildElement("DogumAy", "tckn").addTextNode(identityCard.getBirthMonth().toString());
 			}
-			idCardValidate.addChildElement("DogumYil", "tckn").addTextNode(identityCardImpl.getBirthYear().toString());
+			idCardValidate.addChildElement("DogumYil", "tckn").addTextNode(identityCard.getBirthYear().toString());
 
-			if (identityCardImpl.validateIdCardNumber()) {
-				idCardValidate.addChildElement("CuzdanSeri", "tckn").addTextNode(identityCardImpl.getIdCardSerial());
-				idCardValidate.addChildElement("CuzdanNo", "tckn").addTextNode(identityCardImpl.getIdCardNumber().toString());
+			if (identityCard.validateIdCardNumber()) {
+				idCardValidate.addChildElement("CuzdanSeri", "tckn").addTextNode(identityCard.getIdCardSerial());
+				idCardValidate.addChildElement("CuzdanNo", "tckn").addTextNode(identityCard.getIdCardNumber().toString());
 			}
 
-			if (identityCardImpl.validateTckCardSerialNumber()) {
-				idCardValidate.addChildElement("TCKKSeriNo", "tckn").addTextNode(identityCardImpl.getTckCardSerialNumber());
+			if (identityCard.validateTckCardSerialNumber()) {
+				idCardValidate.addChildElement("TCKKSeriNo", "tckn").addTextNode(identityCard.getTckCardSerialNumber());
 			}
 		} catch (NullPointerException e) {
 			logger.trace(MESSAGE_EMPTY_FIELD);
