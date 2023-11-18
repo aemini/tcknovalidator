@@ -2,53 +2,62 @@ package com.aryaemini.nvi;
 
 import com.aryaemini.nvi.exception.EmptyFieldException;
 import com.aryaemini.nvi.exception.TCKNoValidationException;
-import com.aryaemini.nvi.interfaces.Citizen;
 import com.aryaemini.nvi.interfaces.IdentityCard;
-import com.aryaemini.nvi.model.CitizenImpl;
-import com.aryaemini.nvi.model.IdentityCardImpl;
+import com.aryaemini.nvi.interfaces.Person;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPConnection;
+import jakarta.xml.soap.SOAPConnectionFactory;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.SOAPPart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPConnection;
-import javax.xml.soap.SOAPConnectionFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
-import java.util.logging.Logger;
+import java.util.Objects;
 
 public class TCKNoValidator {
 
-	private static final Logger logger = Logger.getLogger(TCKNoValidator.class.getName());
-	private static TCKNoValidator _this;
+	private static final Logger logger = LoggerFactory.getLogger(TCKNoValidator.class);
+	private static final String MESSAGE_EMPTY_FIELD = "Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.";
+	private static final String MESSAGE_LENGTH = "T.C. kimlik numarası 11 haneli olmalıdır.";
+	private static final String MESSAGE_UNEXPECTED_RESPONSE = "Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.";
+	private static final String SERVICE_URL_IDENTITY_CARD_VALITATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
+	private static final String SERVICE_URL_PERSON_VALIDATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx";
+	private static TCKNoValidator instance;
 
 	private TCKNoValidator() {
 	}
 
-	public static TCKNoValidator getInstance() {
-		if(_this == null) {
-			_this = new TCKNoValidator();
+	public static synchronized TCKNoValidator getInstance() {
+		if(Objects.isNull(instance)) {
+			instance = new TCKNoValidator();
 		}
-		return _this;
+		return instance;
 	}
 
-	private Boolean localValidate(String tckNo) {
-		if(tckNo == null || tckNo.length() != 11) {
-			logger.fine("T.C. kimlik numarası 11 haneli olmalıdır.");
+	private boolean localValidate(String tckNo) {
+		if(Objects.isNull(tckNo) || tckNo.length() != 11) {
+			logger.trace(MESSAGE_LENGTH);
 			return false;
 		}
-		int odds = 0, evens = 0, sum10 = 0;
-		String char10, char11;
+		int odds = 0;
+		int evens = 0;
+		int sum10 = 0;
+		String char10;
+		String char11;
 
 		try {
 			for (int i = 0; i < 10; i++) {
+				int digit = Integer.parseInt(tckNo.substring(i, i + 1));
 				if (i % 2 == 0) {
-					if (i < 9) odds += Integer.parseInt(tckNo.substring(i, i + 1));
-				} else {
-					if (i < 8) evens += Integer.parseInt(tckNo.substring(i, i + 1));
+					odds += digit;
+				} else if (i < 8) {
+					evens += digit;
 				}
-				sum10 += Integer.parseInt(tckNo.substring(i, i + 1));
+				sum10 += digit;
 			}
 
 			odds *= 7;
@@ -56,76 +65,69 @@ public class TCKNoValidator {
 			char11 = Integer.toString(sum10 % 10);
 
 			if (!tckNo.substring(10, 11).equals(char11) || !tckNo.substring(9, 10).equals(char10)) {
-				logger.fine("Geçersiz T.C. kimlik numarası.");
+				logger.trace("Geçersiz T.C. kimlik numarası.");
 				return false;
 			}
 
 			return true;
 		} catch (StringIndexOutOfBoundsException e) {
-			logger.fine("T.C. kimlik numarası 11 haneli olmalıdır.");
-			throw new TCKNoValidationException("T.C. kimlik numarası 11 haneli olmalıdır.", e);
+			logger.trace(MESSAGE_LENGTH);
+			throw new TCKNoValidationException(MESSAGE_LENGTH, e);
 		}
 	}
 
-	public Boolean validate(Citizen citizen) {
-		CitizenImpl citizenImpl = new CitizenImpl(citizen);
+	public boolean validate(Person person) {
 		try {
-			if(localValidate(citizenImpl.getTckNo().toString())) {
-				logger.fine("T.C. kimlik numarası algoritması geçerli.");
-				SOAPMessage soapMessage = createCitizenSOAPRequest(citizenImpl);
-				String url = "https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx";
-				return request(soapMessage, url);
+			if (localValidate(person.getIdentityNumber())) {
+				logger.trace("T.C. kimlik numarası algoritması geçerli.");
+				SOAPMessage soapMessage = createCitizenSOAPRequest(person);
+				return request(soapMessage, SERVICE_URL_PERSON_VALIDATION);
+			}
+			return false;
+		} catch (EmptyFieldException | NullPointerException e) {
+			logger.trace(MESSAGE_EMPTY_FIELD, e);
+			return false;
+		} catch (SOAPException e) {
+			logger.trace(MESSAGE_UNEXPECTED_RESPONSE, e);
+			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
+		}
+	}
+
+	public boolean validate(IdentityCard identityCard) {
+		try {
+			if (localValidate(identityCard.getIdentityNumber())) {
+				logger.trace("T.C. kimlik numarası algoritması geçerli.");
+				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCard);
+				return request(soapMessage, SERVICE_URL_IDENTITY_CARD_VALITATION);
 			}
 			return false;
 		} catch (EmptyFieldException e) {
-			logger.fine("Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.");
-			return false;
-		} catch (NullPointerException e) {
-			logger.fine("Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.");
+			logger.trace(MESSAGE_EMPTY_FIELD);
 			return false;
 		} catch (SOAPException e) {
-			logger.fine("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.");
-			throw new TCKNoValidationException("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.", e);
+			logger.trace(MESSAGE_UNEXPECTED_RESPONSE);
+			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
 	}
 
-	public Boolean validate(IdentityCard identityCard) {
-		IdentityCardImpl identityCardImpl = new IdentityCardImpl(identityCard);
-		try {
-			if (localValidate(identityCardImpl.getTckNo().toString())) {
-				logger.fine("T.C. kimlik numarası algoritması geçerli.");
-				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCardImpl);
-				String url = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
-				return request(soapMessage, url);
-			}
-			return false;
-		} catch (EmptyFieldException e) {
-			logger.fine("Doldurulmamış alanlar bulunuyor. Nüfus cüzdanı doğrulaması yapılmadı.");
-			return false;
-		} catch (SOAPException e) {
-			logger.fine("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.");
-			throw new TCKNoValidationException("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.", e);
-		}
-	}
-
-	private Boolean request(SOAPMessage soapMessage, String url) {
-		logger.fine("Nüfus müdürlüğünden sorgulamaya hazırlanılıyor.");
-		Boolean result;
+	private boolean request(SOAPMessage soapMessage, String url) {
+		logger.trace("Nüfus müdürlüğünden sorgulamaya hazırlanılıyor.");
+		boolean result;
 		try {
 			SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
 			SOAPConnection soapConnection = soapConnectionFactory.createConnection();
 			SOAPMessage response = soapConnection.call(soapMessage, url);
 			String responseBody = response.getSOAPBody().getTextContent();
-			result = Boolean.valueOf(responseBody);
+			result = Boolean.parseBoolean(responseBody);
 			soapConnection.close();
 		} catch (SOAPException e) {
-			throw new TCKNoValidationException("Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.", e);
+			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
 		return result;
 	}
 
-	private SOAPMessage createCitizenSOAPRequest(CitizenImpl citizen) throws EmptyFieldException, SOAPException {
-		logger.fine("Sorgulama isteği oluşturuluyor.");
+	private SOAPMessage createCitizenSOAPRequest(Person person) throws EmptyFieldException, SOAPException {
+		logger.trace("Sorgulama isteği oluşturuluyor.");
 		MessageFactory messageFactory = MessageFactory.newInstance();
 		SOAPMessage soapMessage = messageFactory.createMessage();
 		SOAPPart soapPart = soapMessage.getSOAPPart();
@@ -146,12 +148,12 @@ public class TCKNoValidator {
 		SOAPElement birthYear = tcKnValidate.addChildElement("DogumYili", "tckn");
 
 		try {
-			tckNo.addTextNode(citizen.getTckNo().toString());
-			name.addTextNode(citizen.getName());
-			surname.addTextNode(citizen.getSurname());
-			birthYear.addTextNode(citizen.getBirthYear().toString());
+			tckNo.addTextNode(person.getIdentityNumber());
+			name.addTextNode(person.getFirstName());
+			surname.addTextNode(person.getLastName());
+			birthYear.addTextNode(person.getBirthYear().toString());
 		} catch (NullPointerException e) {
-			logger.fine("Doldurulmamış alanlar bulunmaktadır. Lütfen tüm alanları doldurun.");
+			logger.trace(MESSAGE_EMPTY_FIELD);
 			throw new EmptyFieldException("Lütfen tüm alanları doldurun", e);
 		}
 
@@ -159,8 +161,8 @@ public class TCKNoValidator {
 		return soapMessage;
 	}
 
-	private SOAPMessage createIdentityCardSOAPRequest(IdentityCardImpl identityCardImpl) throws EmptyFieldException, SOAPException {
-		logger.fine("Sorgulama isteği oluşturuluyor.");
+	private SOAPMessage createIdentityCardSOAPRequest(IdentityCard identityCard) throws EmptyFieldException, SOAPException {
+		logger.trace("Sorgulama isteği oluşturuluyor.");
 		MessageFactory messageFactory = MessageFactory.newInstance();
 		SOAPMessage soapMessage = messageFactory.createMessage();
 		SOAPPart soapPart = soapMessage.getSOAPPart();
@@ -176,35 +178,35 @@ public class TCKNoValidator {
 
 		try {
 			SOAPElement idCardValidate = soapBody.addChildElement("KisiVeCuzdanDogrula", "tckn");
-			idCardValidate.addChildElement("TCKimlikNo", "tckn").addTextNode(identityCardImpl.getTckNo().toString());
-			idCardValidate.addChildElement("Ad", "tckn").addTextNode(identityCardImpl.getName());
-			if (identityCardImpl.isSurnameNotSpecified()) {
+			idCardValidate.addChildElement("TCKimlikNo", "tckn").addTextNode(identityCard.getIdentityNumber());
+			idCardValidate.addChildElement("Ad", "tckn").addTextNode(identityCard.getFirstName());
+			if (identityCard.isSurnameNotSpecified()) {
 				idCardValidate.addChildElement("SoyadYok", "tckn").addTextNode("true");
 			} else {
-				idCardValidate.addChildElement("Soyad", "tckn").addTextNode(identityCardImpl.getSurname());
+				idCardValidate.addChildElement("Soyad", "tckn").addTextNode(identityCard.getLastName());
 			}
-			if (identityCardImpl.isBirthDayNotSpecified()) {
+			if (identityCard.isBirthDayNotSpecified()) {
 				idCardValidate.addChildElement("DogumGunYok", "tckn").addTextNode("true");
 			} else {
-				idCardValidate.addChildElement("DogumGun", "tckn").addTextNode(identityCardImpl.getBirthDay().toString());
+				idCardValidate.addChildElement("DogumGun", "tckn").addTextNode(identityCard.getBirthDay().toString());
 			}
-			if (identityCardImpl.isBirthMonthNotSpecified()) {
+			if (identityCard.isBirthMonthNotSpecified()) {
 				idCardValidate.addChildElement("DogumAyYok", "tckn").addTextNode("true");
 			} else {
-				idCardValidate.addChildElement("DogumAy", "tckn").addTextNode(identityCardImpl.getBirthMonth().toString());
+				idCardValidate.addChildElement("DogumAy", "tckn").addTextNode(identityCard.getBirthMonth().toString());
 			}
-			idCardValidate.addChildElement("DogumYil", "tckn").addTextNode(identityCardImpl.getBirthYear().toString());
+			idCardValidate.addChildElement("DogumYil", "tckn").addTextNode(identityCard.getBirthYear().toString());
 
-			if (identityCardImpl.validateIdCardNumber()) {
-				idCardValidate.addChildElement("CuzdanSeri", "tckn").addTextNode(identityCardImpl.getIdCardSerial());
-				idCardValidate.addChildElement("CuzdanNo", "tckn").addTextNode(identityCardImpl.getIdCardNumber().toString());
+			if (identityCard.validateIdCardNumber()) {
+				idCardValidate.addChildElement("CuzdanSeri", "tckn").addTextNode(identityCard.getIdCardSerial());
+				idCardValidate.addChildElement("CuzdanNo", "tckn").addTextNode(identityCard.getIdCardNumber().toString());
 			}
 
-			if (identityCardImpl.validateTckCardSerialNumber()) {
-				idCardValidate.addChildElement("TCKKSeriNo", "tckn").addTextNode(identityCardImpl.getTckCardSerialNumber());
+			if (identityCard.validateTckCardSerialNumber()) {
+				idCardValidate.addChildElement("TCKKSeriNo", "tckn").addTextNode(identityCard.getTckCardSerialNumber());
 			}
 		} catch (NullPointerException e) {
-			logger.fine("Doldurulmamış alanlar bulunmaktadır. Lütfen tüm alanları doldurun.");
+			logger.trace(MESSAGE_EMPTY_FIELD);
 			throw new EmptyFieldException("Lütfen tüm alanları doldurun", e);
 		}
 		soapMessage.saveChanges();

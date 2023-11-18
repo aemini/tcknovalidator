@@ -1,6 +1,6 @@
 package com.aryaemini.nvi.interfaces;
 
-public interface IdentityCard extends Citizen {
+public interface IdentityCard extends Person {
 
 	Integer getBirthDay();
 
@@ -17,5 +17,9 @@ public interface IdentityCard extends Citizen {
 	boolean isBirthDayNotSpecified();
 
 	boolean isBirthMonthNotSpecified();
+
+	boolean validateIdCardNumber();
+
+	boolean validateTckCardSerialNumber();
 
 }
