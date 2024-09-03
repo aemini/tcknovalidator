@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TCKNoValidator {
 
@@ -24,34 +25,37 @@ public class TCKNoValidator {
 	private static final String MESSAGE_EMPTY_FIELD = "Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.";
 	private static final String MESSAGE_LENGTH = "T.C. kimlik numarası 11 haneli olmalıdır.";
 	private static final String MESSAGE_UNEXPECTED_RESPONSE = "Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.";
-	private static final String SERVICE_URL_IDENTITY_CARD_VALITATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
+	private static final String SERVICE_URL_IDENTITY_CARD_VALIDATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
 	private static final String SERVICE_URL_PERSON_VALIDATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx";
 	private static TCKNoValidator instance;
+	private final MessageFactory messageFactory;
 
-	private TCKNoValidator() {
+	private TCKNoValidator() throws SOAPException {
+		messageFactory = MessageFactory.newInstance();
 	}
 
 	public static synchronized TCKNoValidator getInstance() {
-		if(Objects.isNull(instance)) {
-			instance = new TCKNoValidator();
+		try {
+			if (Objects.isNull(instance)) {
+				instance = new TCKNoValidator();
+			}
+			return instance;
+		} catch (SOAPException e) {
+			throw new TCKNoValidationException(e.getMessage(), e);
 		}
-		return instance;
 	}
 
 	private boolean localValidate(String tckNo) {
-		if(Objects.isNull(tckNo) || tckNo.length() != 11) {
+		if (Objects.isNull(tckNo) || tckNo.length() != 11) {
 			logger.trace(MESSAGE_LENGTH);
 			return false;
 		}
-		int odds = 0;
-		int evens = 0;
-		int sum10 = 0;
-		String char10;
-		String char11;
-
 		try {
+			int odds = 0;
+			int evens = 0;
+			int sum10 = 0;
 			for (int i = 0; i < 10; i++) {
-				int digit = Integer.parseInt(tckNo.substring(i, i + 1));
+				int digit = Character.getNumericValue(tckNo.charAt(i));
 				if (i % 2 == 0) {
 					odds += digit;
 				} else if (i < 8) {
@@ -59,19 +63,9 @@ public class TCKNoValidator {
 				}
 				sum10 += digit;
 			}
-
 			odds *= 7;
-			char10 = Integer.toString((odds - evens) % 10);
-			char11 = Integer.toString(sum10 % 10);
-
-			if (!tckNo.substring(10, 11).equals(char11) || !tckNo.substring(9, 10).equals(char10)) {
-				logger.trace("Geçersiz T.C. kimlik numarası.");
-				return false;
-			}
-
-			return true;
+			return Character.getNumericValue(tckNo.charAt(10)) == ((odds - evens) % 10) && Character.getNumericValue(tckNo.charAt(9)) == (sum10 % 10);
 		} catch (StringIndexOutOfBoundsException e) {
-			logger.trace(MESSAGE_LENGTH);
 			throw new TCKNoValidationException(MESSAGE_LENGTH, e);
 		}
 	}
@@ -79,7 +73,6 @@ public class TCKNoValidator {
 	public boolean validate(Person person) {
 		try {
 			if (localValidate(person.getIdentityNumber())) {
-				logger.trace("T.C. kimlik numarası algoritması geçerli.");
 				SOAPMessage soapMessage = createCitizenSOAPRequest(person);
 				return request(soapMessage, SERVICE_URL_PERSON_VALIDATION);
 			}
@@ -88,7 +81,6 @@ public class TCKNoValidator {
 			logger.trace(MESSAGE_EMPTY_FIELD, e);
 			return false;
 		} catch (SOAPException e) {
-			logger.trace(MESSAGE_UNEXPECTED_RESPONSE, e);
 			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
 	}
@@ -96,52 +88,47 @@ public class TCKNoValidator {
 	public boolean validate(IdentityCard identityCard) {
 		try {
 			if (localValidate(identityCard.getIdentityNumber())) {
-				logger.trace("T.C. kimlik numarası algoritması geçerli.");
 				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCard);
-				return request(soapMessage, SERVICE_URL_IDENTITY_CARD_VALITATION);
+				return request(soapMessage, SERVICE_URL_IDENTITY_CARD_VALIDATION);
 			}
 			return false;
 		} catch (EmptyFieldException e) {
-			logger.trace(MESSAGE_EMPTY_FIELD);
+			logger.trace(e.getMessage(), e);
 			return false;
 		} catch (SOAPException e) {
-			logger.trace(MESSAGE_UNEXPECTED_RESPONSE);
 			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
 	}
 
 	private boolean request(SOAPMessage soapMessage, String url) {
 		logger.trace("Nüfus müdürlüğünden sorgulamaya hazırlanılıyor.");
-		boolean result;
+		var response = new AtomicReference<Boolean>();
 		try {
 			SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
 			SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-			SOAPMessage response = soapConnection.call(soapMessage, url);
-			String responseBody = response.getSOAPBody().getTextContent();
-			result = Boolean.parseBoolean(responseBody);
+			SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
+			String responseBody = soapResponse.getSOAPBody().getTextContent();
+			response.setRelease(Boolean.parseBoolean(responseBody));
 			soapConnection.close();
 		} catch (SOAPException e) {
 			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
-		return result;
+		return response.get();
 	}
 
-	private SOAPMessage createCitizenSOAPRequest(Person person) throws EmptyFieldException, SOAPException {
-		logger.trace("Sorgulama isteği oluşturuluyor.");
-		MessageFactory messageFactory = MessageFactory.newInstance();
-		SOAPMessage soapMessage = messageFactory.createMessage();
+	private SOAPBody generateSoapBody(SOAPMessage soapMessage) throws SOAPException {
 		SOAPPart soapPart = soapMessage.getSOAPPart();
-
 		SOAPEnvelope envelope = soapPart.getEnvelope();
-
 		envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 		envelope.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
 		envelope.addNamespaceDeclaration("soap12", "http://www.w3.org/2003/05/soap-envelope");
 		envelope.addNamespaceDeclaration("tckn", "http://tckimlik.nvi.gov.tr/WS");
+		return envelope.getBody();
+	}
 
-		SOAPBody soapBody = envelope.getBody();
-
-		SOAPElement tcKnValidate = soapBody.addChildElement("TCKimlikNoDogrula", "tckn");
+	private SOAPMessage createCitizenSOAPRequest(Person person) throws EmptyFieldException, SOAPException {
+		SOAPMessage soapMessage = messageFactory.createMessage();
+		SOAPElement tcKnValidate = generateSoapBody(soapMessage).addChildElement("TCKimlikNoDogrula", "tckn");
 		SOAPElement tckNo = tcKnValidate.addChildElement("TCKimlikNo", "tckn");
 		SOAPElement name = tcKnValidate.addChildElement("Ad", "tckn");
 		SOAPElement surname = tcKnValidate.addChildElement("Soyad", "tckn");
@@ -153,8 +140,7 @@ public class TCKNoValidator {
 			surname.addTextNode(person.getLastName());
 			birthYear.addTextNode(person.getBirthYear().toString());
 		} catch (NullPointerException e) {
-			logger.trace(MESSAGE_EMPTY_FIELD);
-			throw new EmptyFieldException("Lütfen tüm alanları doldurun", e);
+			throw new EmptyFieldException(MESSAGE_EMPTY_FIELD, e);
 		}
 
 		soapMessage.saveChanges();
@@ -162,22 +148,9 @@ public class TCKNoValidator {
 	}
 
 	private SOAPMessage createIdentityCardSOAPRequest(IdentityCard identityCard) throws EmptyFieldException, SOAPException {
-		logger.trace("Sorgulama isteği oluşturuluyor.");
-		MessageFactory messageFactory = MessageFactory.newInstance();
 		SOAPMessage soapMessage = messageFactory.createMessage();
-		SOAPPart soapPart = soapMessage.getSOAPPart();
-
-		SOAPEnvelope envelope = soapPart.getEnvelope();
-
-		envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
-		envelope.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
-		envelope.addNamespaceDeclaration("soap12", "http://www.w3.org/2003/05/soap-envelope");
-		envelope.addNamespaceDeclaration("tckn", "http://tckimlik.nvi.gov.tr/WS");
-
-		SOAPBody soapBody = envelope.getBody();
-
 		try {
-			SOAPElement idCardValidate = soapBody.addChildElement("KisiVeCuzdanDogrula", "tckn");
+			SOAPElement idCardValidate = generateSoapBody(soapMessage).addChildElement("KisiVeCuzdanDogrula", "tckn");
 			idCardValidate.addChildElement("TCKimlikNo", "tckn").addTextNode(identityCard.getIdentityNumber());
 			idCardValidate.addChildElement("Ad", "tckn").addTextNode(identityCard.getFirstName());
 			if (identityCard.isSurnameNotSpecified()) {
@@ -206,8 +179,7 @@ public class TCKNoValidator {
 				idCardValidate.addChildElement("TCKKSeriNo", "tckn").addTextNode(identityCard.getTckCardSerialNumber());
 			}
 		} catch (NullPointerException e) {
-			logger.trace(MESSAGE_EMPTY_FIELD);
-			throw new EmptyFieldException("Lütfen tüm alanları doldurun", e);
+			throw new EmptyFieldException(MESSAGE_EMPTY_FIELD, e);
 		}
 		soapMessage.saveChanges();
 		return soapMessage;
