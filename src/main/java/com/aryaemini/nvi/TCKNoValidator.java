@@ -64,7 +64,7 @@ public class TCKNoValidator {
 				sum10 += digit;
 			}
 			odds *= 7;
-			return Character.getNumericValue(tckNo.charAt(10)) == ((odds - evens) % 10) && Character.getNumericValue(tckNo.charAt(9)) == (sum10 % 10);
+			return Character.getNumericValue(tckNo.charAt(9)) == ((odds - evens) % 10) && Character.getNumericValue(tckNo.charAt(10)) == (sum10 % 10);
 		} catch (StringIndexOutOfBoundsException e) {
 			throw new TCKNoValidationException(MESSAGE_LENGTH, e);
 		}
@@ -113,6 +113,7 @@ public class TCKNoValidator {
 		} catch (SOAPException e) {
 			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
+		logger.trace("Sorgulama sonucu: {}", response.get());
 		return response.get();
 	}
 
