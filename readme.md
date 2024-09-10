@@ -57,6 +57,9 @@ try {
 
 ## 4. Değişiklikler
 
+### 1.5.1)
+Yalnızca kod optimizasyonu yapıldı. Kullanımda bir değişiklik olmadı.
+
 ### 1.5.0)
 * Java 17 ile çalışır hale getirdim.
 * Vatandaş arayüzünü schema.org'daki Person şemasına benzetmeye çalıştım. Tam karşılamasa da daha yakın.
