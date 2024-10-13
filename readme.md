@@ -8,7 +8,7 @@ Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini N
     <dependency>
         <groupId>com.aryaemini.nvi</groupId>
         <artifactId>tckno-validator</artifactId>
-        <version>1.5.1</version>
+        <version>1.5.2</version>
     </dependency>
 
 ## 2. Kullanım
@@ -55,7 +55,65 @@ try {
 }
 ```
 
-## 4. Değişiklikler
+## 3. Ayarlar
+
+NVİ servislerinin adresinin değişme ihtimaline karşı url'lerin parametrik olması konusunda ricada bulunulması üzerine bu bölüm açıldı.
+Kütüphane, herhangi bir konfigürasyon ihtiyacı olmadan çalışmaktadır, herhangi bir url tanımı yapılması gerekmemektedir.
+
+Kütüphane yaşam döngüsüne başlarken öncelikle konfigürasyon dosyasına bakar (`System.getProperty()`). Bu, Spring Framework için `application.properties` veya `application.yaml` dosyasıdır.
+Eğer başka bir çatı kullanıyorsanız ayarları sakladığınız dosyaya nitelikleri anahtar değer ikilisi olarak ekleyebilirsiniz.
+Konfigürasyon dosyasında aşağıda tablodaki nitelikleri bulamazsa ortam değişkenkeri tablosundaki değerlere bakar.
+Burada da herhangi bir tanım yoksa varsayılan değerlerle singleton olarak çalışır.
+
+##### Örnek yaml
+```yaml
+...
+com:
+  aryaemini:
+    nvi:
+      url:
+        identity-card: https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx
+        person: https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx
+...
+```
+##### Örnek properties
+```properties
+####################### T.C. Kimlik Kontrolu #######################
+com.aryaemini.nvi.url.identity-card: https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx
+com.aryaemini.nvi.url.person: https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx
+####################### T.C. Kimlik Kontrolu #######################
+```
+
+#### Nitelikler
+
+| Nitelik                             | Tip    | Varsayılan Değer                                     |
+|:------------------------------------|:-------|:-----------------------------------------------------|
+| com.aryaemini.nvi.url.identity-card | String | https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx |
+| com.aryaemini.nvi.url.person        | String | https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx   |
+
+#### Ortam Değişkenleri
+| Değişken                                    | Tip    |
+|:--------------------------------------------|:-------|
+| TCKN_VALIDATOR_IDENTITY_CARD_VALIDATION_URL | String |
+| TCKN_VALIDATOR_PERSON_VALIDATION_URL        | String |
+
+## 4. KVKK Uyarısı
+> [!IMPORTANT]
+> Bu kütüphane, T.C. Kimlik Numarası doğrulama işlemleri için kullanılırken herhangi bir kişisel veri saklamaz veya depolamaz.
+> Ancak, kütüphaneyi kullanan kişiler, Türkiye Cumhuriyeti Kanunları çerçevesinde "Veri Sorumlusu" olarak kabul edilebilir ve **6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK)** gerekliliklerine uymakla yükümlüdür. Lütfen kişisel veri işlemlerinde gerekli yasal düzenlemelere dikkat ediniz.
+
+> [!CAUTION]
+> Eğer `com.aryaemini.nvi.*` paketi `debug` (`fine`) veya daha düşük seviyede (`trace` | `finest`) loglanırsa hassas bilgiler de log kanalına iletilir.
+> 
+> URL değişim özelliği; yalnızca servis adresinin değişmesi ihtimalinde, geliştirme ve onaylanma sürecini beklemeden acil değişim imkanı sağlaması maksadıyla eklenmiştir. URL değişim özelliği veya hata ayıklama modunu kullanırken log kanalına aktarılan veya güvensiz bir URL'ye iletilen bu tür bilgilerin güvenliğinden ve korunmasından tamamen "**VERİ SORUMLUSU**" sıfatıyla kütüphaneyi kullanan kişi veya kurum sorumludur.
+> 
+> **6698 sayılı Kişisel Verilerin Korunması Kanunu** (KVKK) çerçevesinde, bu bilgilerin korunmasına yönelik gerekli tedbirlerin alınması yasal zorunluluktur. **Hata ayıklama modunu yalnızca güvenli bir ortamda kullanmanızı öneririz.**
+
+
+## 5. Değişiklikler
+
+### 1.5.2)
+Servis URL'sinin değiştirilebilmesi için gereken ayarlar yapıldı. Kullanımda değişiklik yok.
 
 ### 1.5.1)
 Yalnızca kod optimizasyonu yapıldı. Kullanımda bir değişiklik olmadı.

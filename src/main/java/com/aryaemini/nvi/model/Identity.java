@@ -3,6 +3,7 @@ package com.aryaemini.nvi.model;
 import com.aryaemini.nvi.interfaces.IdentityCard;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.Objects;
 
 @Builder
 @Getter
+@ToString
 public class Identity implements IdentityCard {
 
 	private String identityNumber;

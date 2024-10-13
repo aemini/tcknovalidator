@@ -15,8 +15,13 @@ import jakarta.xml.soap.SOAPMessage;
 import jakarta.xml.soap.SOAPPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TCKNoValidator {
@@ -25,16 +30,26 @@ public class TCKNoValidator {
 	private static final String MESSAGE_EMPTY_FIELD = "Doldurulmamış alanlar bulunuyor. T.C. kimlik numarası doğrulaması yapılmadı.";
 	private static final String MESSAGE_LENGTH = "T.C. kimlik numarası 11 haneli olmalıdır.";
 	private static final String MESSAGE_UNEXPECTED_RESPONSE = "Nüfus müdürlüğü'nden beklenmedik yanıt alındı. İşlem tamamlanamadı.";
-	private static final String SERVICE_URL_IDENTITY_CARD_VALIDATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx";
-	private static final String SERVICE_URL_PERSON_VALIDATION = "https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx";
 	private static TCKNoValidator instance;
+	private final String urlIdentityCard;
+	private final String urlPerson;
 	private final MessageFactory messageFactory;
 
 	private TCKNoValidator() throws SOAPException {
+		urlIdentityCard = Optional.ofNullable(System.getProperty("com.aryaemini.nvi.url.identity-card"))
+				.orElseGet(() ->Optional.ofNullable(System.getenv("TCKN_VALIDATOR_IDENTITY_CARD_VALIDATION_URL"))
+						.orElse("https://tckimlik.nvi.gov.tr/Service/KPSPublicV2.asmx"));
+		urlPerson = Optional.ofNullable(System.getProperty("com.aryaemini.nvi.url.person"))
+				.orElseGet(() -> Optional.ofNullable(System.getenv("TCKN_VALIDATOR_PERSON_VALIDATION_URL"))
+						.orElse("https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx"));
 		messageFactory = MessageFactory.newInstance();
 	}
 
 	public static synchronized TCKNoValidator getInstance() {
+		logger.info("UYARI: Bu kütüphane, T.C. Kimlik Numarası doğrulama işlemleri için kullanılırken herhangi bir kişisel veri saklamaz veya depolamaz. Ancak, kütüphaneyi kullanan kişiler, Türkiye Cumhuriyeti Kanunları çerçevesinde \"VERİ SORUMLUSU\" olarak kabul edilebilir ve 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) gerekliliklerine uymakla yükümlüdür. Lütfen kişisel veri işlemlerinde gerekli yasal düzenlemelere dikkat ediniz.");
+		if (logger.isDebugEnabled()) {
+			logger.info("!!!DİKKAT!!! Kütüphaneyi şu anda hata ayıklama (debug) modunda kullanıyorsunuz. Bu modda, T.C. Kimlik Numarası ve diğer hassas bilgiler log kanalına iletilebilir. Hata ayıklama modunu kullanırken log kanalına aktarılan bu tür bilgilerin güvenliğinden ve korunmasından tamamen \"VERİ SORUMLUSU\" sıfatıyla kütüphaneyi kullanan kişi veya kurum sorumludur.\n6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) çerçevesinde, bu bilgilerin korunmasına yönelik gerekli tedbirlerin alınması yasal zorunluluktur. Hata ayıklama modunu yalnızca güvenli bir ortamda kullanmanızı öneririz.");
+		}
 		try {
 			if (Objects.isNull(instance)) {
 				instance = new TCKNoValidator();
@@ -74,39 +89,72 @@ public class TCKNoValidator {
 		try {
 			if (localValidate(person.getIdentityNumber())) {
 				SOAPMessage soapMessage = createCitizenSOAPRequest(person);
-				return request(soapMessage, SERVICE_URL_PERSON_VALIDATION);
+				return request(soapMessage, urlPerson);
 			}
-			return false;
 		} catch (EmptyFieldException | NullPointerException e) {
-			logger.trace(MESSAGE_EMPTY_FIELD, e);
-			return false;
+			if (logger.isDebugEnabled()) {
+				logger.info(e.getMessage() +
+						"\nT.C. Kimlik No : {}" +
+						"\nAdı            : {}" +
+						"\nSoyadı         : {}" +
+						"\nDoğum tarihi   : {}",
+						person.getIdentityNumber(),
+						person.getFirstName(),
+						person.getLastName(),
+						person.getBirthYear(),
+						e);
+			} else {
+				logger.info(e.getMessage());
+			}
 		} catch (SOAPException e) {
 			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
+		return false;
 	}
 
 	public boolean validate(IdentityCard identityCard) {
 		try {
 			if (localValidate(identityCard.getIdentityNumber())) {
 				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCard);
-				return request(soapMessage, SERVICE_URL_IDENTITY_CARD_VALIDATION);
+				return request(soapMessage, urlIdentityCard);
 			}
 			return false;
-		} catch (EmptyFieldException e) {
-			logger.trace(e.getMessage(), e);
+		} catch (EmptyFieldException | NullPointerException e) {
+			if (logger.isDebugEnabled()) {
+				final var unspecified = "Belirtilmemiş";
+				logger.info(e.getMessage() +
+								"\nT.C. Kimlik No : {}" +
+								"\nAdı            : {}" +
+								"\nSoyadı         : {}" +
+								"\nDoğum Yılı     : {}" +
+								"\nDoğum Gün      : {}" +
+								"\nDoğum Ay       : {}" +
+								"\nKimlik Seri No : {}",
+						identityCard.getIdentityNumber(),
+						identityCard.getFirstName(),
+						identityCard.isSurnameNotSpecified() ? unspecified : identityCard.getLastName(),
+						identityCard.getBirthYear(),
+						identityCard.isBirthDayNotSpecified() ? unspecified : identityCard.getBirthDay(),
+						identityCard.isBirthMonthNotSpecified() ? unspecified : identityCard.getBirthMonth(),
+						identityCard.validateIdCardNumber() ? (identityCard.getIdCardSerial() + " " + identityCard.getIdCardNumber()) : identityCard.getTckCardSerialNumber(),
+						e);
+			} else {
+				logger.trace(e.getMessage(), e);
+			}
 			return false;
 		} catch (SOAPException e) {
 			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
 	}
 
-	private boolean request(SOAPMessage soapMessage, String url) {
+	private boolean request(SOAPMessage soapRequest, String url) {
 		logger.trace("Nüfus müdürlüğünden sorgulamaya hazırlanılıyor.");
 		var response = new AtomicReference<Boolean>();
 		try {
 			SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
 			SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-			SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
+			SOAPMessage soapResponse = soapConnection.call(soapRequest, url);
+			logRequest(url, soapRequest, soapResponse);
 			String responseBody = soapResponse.getSOAPBody().getTextContent();
 			response.setRelease(Boolean.parseBoolean(responseBody));
 			soapConnection.close();
@@ -184,6 +232,24 @@ public class TCKNoValidator {
 		}
 		soapMessage.saveChanges();
 		return soapMessage;
+	}
+
+	private void logRequest(String url, SOAPMessage soapRequest, SOAPMessage soapResponse) throws SOAPException {
+		if (logger.isTraceEnabled()) {
+			try (var outputStream = new ByteArrayOutputStream()) {
+				soapRequest.writeTo(outputStream);
+				var requestBody = outputStream.toString(StandardCharsets.UTF_8);
+				outputStream.reset();
+				soapResponse.writeTo(outputStream);
+				var responseBody = outputStream.toString(StandardCharsets.UTF_8);
+				MDC.put("requestBody", requestBody);
+				MDC.put("responseBody", responseBody);
+				logger.trace("Sending soap request to: {}", url);
+				MDC.clear();
+			} catch (IOException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
 	}
 
 }
