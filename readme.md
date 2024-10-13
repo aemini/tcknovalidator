@@ -103,7 +103,7 @@ com.aryaemini.nvi.url.person: https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx
 > Ancak, kütüphaneyi kullanan kişiler, Türkiye Cumhuriyeti Kanunları çerçevesinde "Veri Sorumlusu" olarak kabul edilebilir ve **6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK)** gerekliliklerine uymakla yükümlüdür. Lütfen kişisel veri işlemlerinde gerekli yasal düzenlemelere dikkat ediniz.
 
 > [!CAUTION]
-> Eğer com.aryaemini.nvi.* paketlerini `debug` (`fine`) veya daha düşük seviyede (`trace` | `finest`) loglanırsa hassas bilgiler de log kanalına iletilir.
+> Eğer `com.aryaemini.nvi.*` paketi `debug` (`fine`) veya daha düşük seviyede (`trace` | `finest`) loglanırsa hassas bilgiler de log kanalına iletilir.
 > 
 > URL değişim özelliği; yalnızca servis adresinin değişmesi ihtimalinde, geliştirme ve onaylanma sürecini beklemeden acil değişim imkanı sağlaması maksadıyla eklenmiştir. URL değişim özelliği veya hata ayıklama modunu kullanırken log kanalına aktarılan veya güvensiz bir URL'ye iletilen bu tür bilgilerin güvenliğinden ve korunmasından tamamen "**VERİ SORUMLUSU**" sıfatıyla kütüphaneyi kullanan kişi veya kurum sorumludur.
 > 
