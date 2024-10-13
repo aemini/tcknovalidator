@@ -8,7 +8,7 @@ Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini N
     <dependency>
         <groupId>com.aryaemini.nvi</groupId>
         <artifactId>tckno-validator</artifactId>
-        <version>1.5.0</version>
+        <version>1.5.1</version>
     </dependency>
 
 ## 2. Kullanım
@@ -34,11 +34,11 @@ var vatandas = Citizen.builder()
         .build();
 
 var kimlikKarti = Identity.builder()
-        .identityNumber("12523266658")
+        .identityNumber("12345678900")
         .firstName("arya")
         .lastName("emini")
         .birthDate(calendar.getTime())
-        .tckCardSerialNumber("a13d93562")
+        .tckCardSerialNumber("x00x00000")
         .build();
  
 Boolean isValidCitizen;
@@ -56,6 +56,9 @@ try {
 ```
 
 ## 4. Değişiklikler
+
+### 1.5.1)
+Yalnızca kod optimizasyonu yapıldı. Kullanımda bir değişiklik olmadı.
 
 ### 1.5.0)
 * Java 17 ile çalışır hale getirdim.
