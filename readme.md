@@ -1,4 +1,4 @@
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.aryaemini.nvi/tckno-validator/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.aryaemini.nvi/tckno-validator/)
+![Maven Central Version](https://img.shields.io/maven-central/v/com.aryaemini.nvi/tckno-validator)
 [![Security Rating](https://sonarqube.aryaemini.net/api/project_badges/measure?project=com.aryaemini.nvi%3Atckno-validator&metric=security_rating&token=sqb_a33c691e76737d6fc13f59aa2761d29aae568784)](https://sonarqube.aryaemini.net/dashboard?id=com.aryaemini.nvi%3Atckno-validator)
 [![Reliability Rating](https://sonarqube.aryaemini.net/api/project_badges/measure?project=com.aryaemini.nvi%3Atckno-validator&metric=reliability_rating&token=sqb_a33c691e76737d6fc13f59aa2761d29aae568784)](https://sonarqube.aryaemini.net/dashboard?id=com.aryaemini.nvi%3Atckno-validator)
 [![Coverage](https://sonarqube.aryaemini.net/api/project_badges/measure?project=com.aryaemini.nvi%3Atckno-validator&metric=coverage&token=sqb_a33c691e76737d6fc13f59aa2761d29aae568784)](https://sonarqube.aryaemini.net/dashboard?id=com.aryaemini.nvi%3Atckno-validator)
