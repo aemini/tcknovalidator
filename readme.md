@@ -1,4 +1,8 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.aryaemini.nvi/tckno-validator/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.aryaemini.nvi/tckno-validator/)
+[![Security Rating](https://sonarqube.aryaemini.net/api/project_badges/measure?project=com.aryaemini.nvi%3Atckno-validator&metric=security_rating&token=sqb_a33c691e76737d6fc13f59aa2761d29aae568784)](https://sonarqube.aryaemini.net/dashboard?id=com.aryaemini.nvi%3Atckno-validator)
+[![Reliability Rating](https://sonarqube.aryaemini.net/api/project_badges/measure?project=com.aryaemini.nvi%3Atckno-validator&metric=reliability_rating&token=sqb_a33c691e76737d6fc13f59aa2761d29aae568784)](https://sonarqube.aryaemini.net/dashboard?id=com.aryaemini.nvi%3Atckno-validator)
+[![Coverage](https://sonarqube.aryaemini.net/api/project_badges/measure?project=com.aryaemini.nvi%3Atckno-validator&metric=coverage&token=sqb_a33c691e76737d6fc13f59aa2761d29aae568784)](https://sonarqube.aryaemini.net/dashboard?id=com.aryaemini.nvi%3Atckno-validator)
+[![Bugs](https://sonarqube.aryaemini.net/api/project_badges/measure?project=com.aryaemini.nvi%3Atckno-validator&metric=bugs&token=sqb_a33c691e76737d6fc13f59aa2761d29aae568784)](https://sonarqube.aryaemini.net/dashboard?id=com.aryaemini.nvi%3Atckno-validator)
 # T.C. Kimlik Numarası Doğrulama Bileşeni
 
 Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini Nüfus Müdürlüğü'nün servisleri üzerinden doğrulayan bileşen. Kritik servislere abonelik veyahut faturaya yazılacak kimlik numarasını doğrulama maksadıyla kullanılabilir. Nüfus ve Vatantaşlık İşleri Genel Müdürlüğü servisleri üzerinden TC kimlik numarası veya kimlik kartı geçerlilik sonucu üretir.
@@ -8,7 +12,7 @@ Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini N
     <dependency>
         <groupId>com.aryaemini.nvi</groupId>
         <artifactId>tckno-validator</artifactId>
-        <version>1.5.2</version>
+        <version>1.5.3</version>
     </dependency>
 
 ## 2. Kullanım
@@ -112,6 +116,9 @@ com.aryaemini.nvi.url.person: https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx
 
 ## 5. Değişiklikler
 
+### 1.5.3)
+NullPointerException yakalamaya çalışırken NullPointerException yaratmışım, onu fixledim. Unit testler ekledim. Kullanımda değişiklik yok.
+
 ### 1.5.2)
 Servis URL'sinin değiştirilebilmesi için gereken ayarlar yapıldı. Kullanımda değişiklik yok.
 
@@ -122,3 +129,5 @@ Yalnızca kod optimizasyonu yapıldı. Kullanımda bir değişiklik olmadı.
 * Java 17 ile çalışır hale getirdim.
 * Vatandaş arayüzünü schema.org'daki Person şemasına benzetmeye çalıştım. Tam karşılamasa da daha yakın.
 * Eski versiyonlarda arayüze implementasyon şartı vardı. Vatandaş ve kimlik kartı modellerine bir de builder ekledim.
+
+[![Quality gate](https://sonarqube.aryaemini.net/api/project_badges/quality_gate?project=com.aryaemini.nvi%3Atckno-validator&token=sqb_a33c691e76737d6fc13f59aa2761d29aae568784)](https://sonarqube.aryaemini.net/dashboard?id=com.aryaemini.nvi%3Atckno-validator)
