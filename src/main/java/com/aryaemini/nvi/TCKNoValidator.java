@@ -117,22 +117,19 @@ public class TCKNoValidator {
 			}
 		} catch (EmptyFieldException | NullPointerException e) {
 			if (logger.isDebugEnabled()) {
-				final var unspecified = "Belirtilmemiş";
 				logger.info(e.getMessage() +
 								"\nT.C. Kimlik No : {}" +
 								"\nAdı            : {}" +
 								"\nSoyadı         : {}" +
 								"\nDoğum Yılı     : {}" +
 								"\nDoğum Gün      : {}" +
-								"\nDoğum Ay       : {}" +
-								"\nKimlik Seri No : {}",
+								"\nDoğum Ay       : {}",
 						identityCard.getIdentityNumber(),
 						identityCard.getFirstName(),
 						identityCard.getLastName(),
 						identityCard.getBirthYear(),
 						identityCard.getBirthDay(),
 						identityCard.getBirthMonth(),
-						identityCard.validateIdCardNumber() ? (identityCard.getIdCardSerial() + " " + identityCard.getIdCardNumber()) : identityCard.getTckCardSerialNumber(),
 						e);
 			} else {
 				logger.trace(e.getMessage(), e);
