@@ -1,71 +1,69 @@
 package com.aryaemini.nvi.model;
 
 import com.aryaemini.nvi.interfaces.IdentityCard;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Objects;
 
-@Builder
 @Getter
+@SuperBuilder(toBuilder=true)
 @ToString
-public class Identity implements IdentityCard {
+public class Identity extends Citizen implements IdentityCard {
 
-	private String identityNumber;
-	private String firstName;
-	private String lastName;
-	private Date birthDate;
+	private Integer birthDay;
+	private Integer birthMonth;
 	private String idCardSerial;
 	private Integer idCardNumber;
 	private String tckCardSerialNumber;
 
 	@Override
 	public Integer getBirthDay() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(birthDate);
-		return calendar.get(Calendar.DAY_OF_MONTH);
+		var calendar = Calendar.getInstance();
+		if (Objects.nonNull(getBirthDate())) {
+			calendar.setTime(getBirthDate());
+			birthDay = calendar.get(Calendar.DAY_OF_MONTH);
+		}
+		return birthDay;
 	}
 
 	@Override
 	public Integer getBirthMonth() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(birthDate);
-		return calendar.get(Calendar.MONTH);
+		var calendar = Calendar.getInstance();
+		if (Objects.nonNull(getBirthDate())) {
+			calendar.setTime(getBirthDate());
+			birthMonth = calendar.get(Calendar.MONTH);
+		}
+		return birthMonth;
 	}
 
 	@Override
 	public boolean isSurnameNotSpecified() {
-		return Objects.isNull(lastName);
+		return Objects.isNull(getLastName());
 	}
 
 	@Override
 	public boolean isBirthDayNotSpecified() {
-		return false;
+		return Objects.isNull(getBirthDay());
 	}
 
 	@Override
 	public boolean isBirthMonthNotSpecified() {
-		return false;
-	}
-
-	@Override
-	public Integer getBirthYear() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(birthDate);
-		return calendar.get(Calendar.YEAR);
+		return Objects.isNull(getBirthMonth());
 	}
 
 	@Override
 	public boolean validateIdCardNumber() {
-		return Objects.nonNull(idCardSerial) && Objects.nonNull(idCardNumber);
+		return Objects.nonNull(idCardSerial)
+				&& !idCardSerial.trim().isEmpty()
+				&& Objects.nonNull(idCardNumber);
 	}
 
 	@Override
 	public boolean validateTckCardSerialNumber() {
-		return Objects.nonNull(tckCardSerialNumber);
+		return Objects.nonNull(tckCardSerialNumber) && !tckCardSerialNumber.trim().isEmpty();
 	}
 
 }

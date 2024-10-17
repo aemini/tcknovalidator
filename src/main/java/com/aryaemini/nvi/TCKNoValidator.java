@@ -65,24 +65,21 @@ public class TCKNoValidator {
 			logger.trace(MESSAGE_LENGTH);
 			return false;
 		}
-		try {
-			int odds = 0;
-			int evens = 0;
-			int sum10 = 0;
-			for (int i = 0; i < 10; i++) {
-				int digit = Character.getNumericValue(tckNo.charAt(i));
-				if (i % 2 == 0) {
-					odds += digit;
-				} else if (i < 8) {
-					evens += digit;
-				}
-				sum10 += digit;
+		int odds = 0;
+		int evens = 0;
+		int sum10 = 0;
+		for (int i = 0; i < 10; i++) {
+			int digit = Character.getNumericValue(tckNo.charAt(i));
+			if (i % 2 == 0) {
+				odds += digit;
+			} else if (i < 8) {
+				evens += digit;
 			}
-			odds *= 7;
-			return Character.getNumericValue(tckNo.charAt(9)) == ((odds - evens) % 10) && Character.getNumericValue(tckNo.charAt(10)) == (sum10 % 10);
-		} catch (StringIndexOutOfBoundsException e) {
-			throw new TCKNoValidationException(MESSAGE_LENGTH, e);
+			sum10 += digit;
 		}
+		odds *= 7;
+		return Character.getNumericValue(tckNo.charAt(9)) == ((odds - evens) % 10)
+				&& Character.getNumericValue(tckNo.charAt(10)) == (sum10 % 10);
 	}
 
 	public boolean validate(Person person) {
@@ -118,33 +115,29 @@ public class TCKNoValidator {
 				SOAPMessage soapMessage = createIdentityCardSOAPRequest(identityCard);
 				return request(soapMessage, urlIdentityCard);
 			}
-			return false;
 		} catch (EmptyFieldException | NullPointerException e) {
 			if (logger.isDebugEnabled()) {
-				final var unspecified = "Belirtilmemiş";
 				logger.info(e.getMessage() +
 								"\nT.C. Kimlik No : {}" +
 								"\nAdı            : {}" +
 								"\nSoyadı         : {}" +
 								"\nDoğum Yılı     : {}" +
 								"\nDoğum Gün      : {}" +
-								"\nDoğum Ay       : {}" +
-								"\nKimlik Seri No : {}",
+								"\nDoğum Ay       : {}",
 						identityCard.getIdentityNumber(),
 						identityCard.getFirstName(),
-						identityCard.isSurnameNotSpecified() ? unspecified : identityCard.getLastName(),
+						identityCard.getLastName(),
 						identityCard.getBirthYear(),
-						identityCard.isBirthDayNotSpecified() ? unspecified : identityCard.getBirthDay(),
-						identityCard.isBirthMonthNotSpecified() ? unspecified : identityCard.getBirthMonth(),
-						identityCard.validateIdCardNumber() ? (identityCard.getIdCardSerial() + " " + identityCard.getIdCardNumber()) : identityCard.getTckCardSerialNumber(),
+						identityCard.getBirthDay(),
+						identityCard.getBirthMonth(),
 						e);
 			} else {
 				logger.trace(e.getMessage(), e);
 			}
-			return false;
 		} catch (SOAPException e) {
 			throw new TCKNoValidationException(MESSAGE_UNEXPECTED_RESPONSE, e);
 		}
+		return false;
 	}
 
 	private boolean request(SOAPMessage soapRequest, String url) {
