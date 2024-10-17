@@ -56,12 +56,14 @@ public class Identity extends Citizen implements IdentityCard {
 
 	@Override
 	public boolean validateIdCardNumber() {
-		return Objects.nonNull(idCardSerial) && Objects.nonNull(idCardNumber);
+		return Objects.nonNull(idCardSerial)
+				&& !idCardSerial.trim().isEmpty()
+				&& Objects.nonNull(idCardNumber);
 	}
 
 	@Override
 	public boolean validateTckCardSerialNumber() {
-		return Objects.nonNull(tckCardSerialNumber);
+		return Objects.nonNull(tckCardSerialNumber) && !tckCardSerialNumber.trim().isEmpty();
 	}
 
 }
