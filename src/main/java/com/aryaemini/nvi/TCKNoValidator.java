@@ -132,7 +132,7 @@ public class TCKNoValidator {
 								"\nKimlik Seri No : {}",
 						identityCard.getIdentityNumber(),
 						identityCard.getFirstName(),
-						identityCard.isSurnameNotSpecified() ? unspecified : identityCard.getLastName(),
+						identityCard.getLastName(),
 						identityCard.getBirthYear(),
 						identityCard.isBirthDayNotSpecified() ? unspecified : identityCard.getBirthDay(),
 						identityCard.isBirthMonthNotSpecified() ? unspecified : identityCard.getBirthMonth(),

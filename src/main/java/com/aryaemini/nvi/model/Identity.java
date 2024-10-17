@@ -21,6 +21,7 @@ public class Identity extends Citizen implements IdentityCard {
 
 	@Override
 	public Integer getBirthDay() {
+		var calendar = Calendar.getInstance();
 		if (Objects.nonNull(getBirthDate())) {
 			calendar.setTime(getBirthDate());
 			birthDay = calendar.get(Calendar.DAY_OF_MONTH);
@@ -30,6 +31,7 @@ public class Identity extends Citizen implements IdentityCard {
 
 	@Override
 	public Integer getBirthMonth() {
+		var calendar = Calendar.getInstance();
 		if (Objects.nonNull(getBirthDate())) {
 			calendar.setTime(getBirthDate());
 			birthMonth = calendar.get(Calendar.MONTH);

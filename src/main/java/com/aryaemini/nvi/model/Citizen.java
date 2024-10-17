@@ -14,7 +14,6 @@ import java.util.Objects;
 @ToString
 public class Citizen implements Person {
 
-	protected static final Calendar calendar = Calendar.getInstance();
 	private String identityNumber;
 	private String firstName;
 	private String lastName;
@@ -22,6 +21,7 @@ public class Citizen implements Person {
 	private Integer birthYear;
 
 	public Integer getBirthYear() {
+		var calendar = Calendar.getInstance();
 		if (Objects.nonNull(birthDate)) {
 			calendar.setTime(birthDate);
 			birthYear = calendar.get(Calendar.YEAR);
