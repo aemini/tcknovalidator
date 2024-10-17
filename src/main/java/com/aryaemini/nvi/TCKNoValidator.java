@@ -130,8 +130,8 @@ public class TCKNoValidator {
 						identityCard.getFirstName(),
 						identityCard.getLastName(),
 						identityCard.getBirthYear(),
-						identityCard.isBirthDayNotSpecified() ? unspecified : identityCard.getBirthDay(),
-						identityCard.isBirthMonthNotSpecified() ? unspecified : identityCard.getBirthMonth(),
+						identityCard.getBirthDay(),
+						identityCard.getBirthMonth(),
 						identityCard.validateIdCardNumber() ? (identityCard.getIdCardSerial() + " " + identityCard.getIdCardNumber()) : identityCard.getTckCardSerialNumber(),
 						e);
 			} else {
