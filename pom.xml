@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.aryaemini.nvi</groupId>
 	<artifactId>tckno-validator</artifactId>
-	<version>1.5.3</version>
+	<version>1.5.4</version>
 	<packaging>jar</packaging>
 
 	<name>T.C. Kimlik Dogrulama</name>
@@ -20,13 +20,13 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.34</version>
+			<version>1.18.38</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>2.0.16</version>
+			<version>2.0.17</version>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.xml.soap</groupId>
@@ -42,13 +42,13 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.11.2</version>
+			<version>5.13.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-			<version>2.0.16</version>
+			<version>2.0.17</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -94,7 +94,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.10.1</version>
+				<version>3.11.2</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -115,13 +115,20 @@
 						<goals>
 							<goal>sign</goal>
 						</goals>
+						<configuration>
+							<keyname>155D41C1431DB66324E0E967BDB1BD98B5378FD8</keyname>
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.13.0</version>
+				<version>3.14.0</version>
 				<configuration>
 					<source>17</source>
 					<target>17</target>
@@ -130,7 +137,7 @@
 			<plugin>
 				<groupId>org.sonatype.central</groupId>
 				<artifactId>central-publishing-maven-plugin</artifactId>
-				<version>0.6.0</version>
+				<version>0.7.0</version>
 				<extensions>true</extensions>
 				<configuration>
 					<publishingServerId>central</publishingServerId>
@@ -139,7 +146,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.12</version>
+				<version>0.8.13</version>
 				<executions>
 					<execution>
 						<id>prepare-agent</id>

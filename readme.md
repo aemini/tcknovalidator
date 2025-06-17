@@ -12,7 +12,7 @@ Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini N
     <dependency>
         <groupId>com.aryaemini.nvi</groupId>
         <artifactId>tckno-validator</artifactId>
-        <version>1.5.3</version>
+        <version>1.5.4</version>
     </dependency>
 
 ## 2. Kullanım
@@ -115,6 +115,9 @@ com.aryaemini.nvi.url.person: https://tckimlik.nvi.gov.tr/Service/KPSPublic.asmx
 
 
 ## 5. Değişiklikler
+
+### 1.5.4)
+T.C. kimlik numarası local doğrulamada algoritma hatalıydı. Bunun düzeltmesi ve bağımlı kütüphanelerin son versiyonları eklendi. Kullanımda bir değişiklik yok.
 
 ### 1.5.3)
 NullPointerException yakalamaya çalışırken NullPointerException yaratmışım, onu fixledim. Unit testler ekledim. Kullanımda değişiklik yok.
