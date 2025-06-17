@@ -12,7 +12,7 @@ Ad, soyad, doğum yılı ve T.C. kimlik numarası girdilerinin geçerliliğini N
     <dependency>
         <groupId>com.aryaemini.nvi</groupId>
         <artifactId>tckno-validator</artifactId>
-        <version>1.5.3</version>
+        <version>1.5.4</version>
     </dependency>
 
 ## 2. Kullanım
