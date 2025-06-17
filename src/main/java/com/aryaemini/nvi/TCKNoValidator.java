@@ -77,14 +77,14 @@ public class TCKNoValidator {
 			}
 			sum10 += digit;
 		}
-		odds *= 7;
-		return Character.getNumericValue(tckNo.charAt(9)) == ((odds - evens) % 10)
+		return Character.getNumericValue(tckNo.charAt(9)) == (((odds * 7) + (evens * 9)) % 10)
 				&& Character.getNumericValue(tckNo.charAt(10)) == (sum10 % 10);
 	}
 
 	public boolean validate(Person person) {
 		try {
 			if (localValidate(person.getIdentityNumber())) {
+				logger.debug("Local validation is passed.");
 				SOAPMessage soapMessage = createCitizenSOAPRequest(person);
 				return request(soapMessage, urlPerson);
 			}
